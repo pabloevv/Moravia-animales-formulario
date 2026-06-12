@@ -8,7 +8,9 @@ import App from './App';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <MantineProvider theme={theme} defaultColorScheme="dark">
+    {/* forced: the diorama, jerseys and scoreboard must look identical
+        whether the device prefers light or dark mode */}
+    <MantineProvider theme={theme} forceColorScheme="dark">
       <App />
     </MantineProvider>
   </React.StrictMode>,
