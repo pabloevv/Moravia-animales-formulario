@@ -1,0 +1,13 @@
+{
+  "name": "advcm-mascot-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm ci --prefix client && npm run build --prefix client && npm ci --prefix server && npm run build --prefix server",
+    "start": "npm run start --prefix server"
+  }
+}
