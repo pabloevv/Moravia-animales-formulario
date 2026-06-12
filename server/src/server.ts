@@ -2,9 +2,9 @@
  * ADVCM Volleyball Mascot Vote — lightweight Express backend.
  *
  * Stores a binary vote: 0 = Jaguar, 1 = Raccoon.
- * For now votes live in memory (counts only) to stay well under the
- * 0.5 GB RAM hobby tier. Swap `recordVote` for an append to the volume
- * (e.g. a single newline-delimited file or SQLite) when persistence is needed.
+ * Votes are kept in memory for fast reads and persisted to disk after each
+ * new device vote. In Railway, mount a persistent volume at /app/data so the
+ * JSON file survives image rebuilds and redeploys.
  */
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
@@ -18,6 +18,17 @@ const PORT = Number(process.env.PORT) || 3001;
 
 const JAGUAR = 0;
 const RACCOON = 1;
+type Vote = typeof JAGUAR | typeof RACCOON;
+type VoteState = {
+  votes: Record<string, Vote>;
+};
+
+const DATA_DIR = process.env.VOTES_DATA_DIR
+  ? path.resolve(process.env.VOTES_DATA_DIR)
+  : process.env.RAILWAY_VOLUME_MOUNT_PATH
+    ? path.resolve(process.env.RAILWAY_VOLUME_MOUNT_PATH)
+    : path.resolve(__dirname, '../../data');
+const VOTES_FILE = path.join(DATA_DIR, 'votes.json');
 
 // --- In-memory store (counts only — tiny footprint) ----------------------
 const tally = { [JAGUAR]: 0, [RACCOON]: 0 };
@@ -27,11 +38,50 @@ let total = 0;
 // voters stay in a few hundred KB, well under the 0.5 GB tier.
 const votedDevices = new Set<string>();
 
-function recordVote(vote: 0 | 1): void {
+function emptyState(): VoteState {
+  return { votes: {} };
+}
+
+function isVote(value: unknown): value is Vote {
+  return value === JAGUAR || value === RACCOON;
+}
+
+function loadState(): VoteState {
+  if (!fs.existsSync(VOTES_FILE)) return emptyState();
+
+  try {
+    const parsed = JSON.parse(fs.readFileSync(VOTES_FILE, 'utf8')) as Partial<VoteState>;
+    const votes = Object.entries(parsed.votes ?? {}).reduce<Record<string, Vote>>((acc, [deviceId, vote]) => {
+      if (typeof deviceId === 'string' && isVote(vote)) acc[deviceId] = vote;
+      return acc;
+    }, {});
+
+    return { votes };
+  } catch (error) {
+    console.error(`Could not read vote state at ${VOTES_FILE}`, error);
+    return emptyState();
+  }
+}
+
+function saveState(state: VoteState): void {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  const tmpFile = `${VOTES_FILE}.tmp`;
+  fs.writeFileSync(tmpFile, `${JSON.stringify(state)}\n`, 'utf8');
+  fs.renameSync(tmpFile, VOTES_FILE);
+}
+
+const voteState = loadState();
+for (const [deviceId, vote] of Object.entries(voteState.votes)) {
+  votedDevices.add(deviceId);
   tally[vote] += 1;
   total += 1;
-  // FUTURE: persist to the 0.5 GB volume, e.g.
-  //   fs.appendFileSync(path.join(DATA_DIR, 'votes.log'), `${deviceId},${vote}\n`);
+}
+
+function recordVote(deviceId: string, vote: Vote): void {
+  voteState.votes[deviceId] = vote;
+  tally[vote] += 1;
+  total += 1;
+  saveState(voteState);
 }
 
 // --- App -----------------------------------------------------------------
@@ -57,7 +107,7 @@ app.post('/api/vote', (req: Request, res: Response) => {
   let counted = false;
   if (!votedDevices.has(deviceId)) {
     votedDevices.add(deviceId);
-    recordVote(vote);
+    recordVote(deviceId, vote);
     counted = true;
   }
   return res.json({ jaguar: tally[JAGUAR], raccoon: tally[RACCOON], total, counted });
