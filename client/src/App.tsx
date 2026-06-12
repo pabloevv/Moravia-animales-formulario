@@ -46,8 +46,8 @@ export default function App() {
       <div className="app-bg" aria-hidden />
       <div className="app-bg-overlay" aria-hidden />
       {stage === 'result' && prior.current === null && <Confetti />}
-      <Center mih="100dvh" py="xl" style={{ position: 'relative', zIndex: 1 }}>
-        <Box key={stage} className="stage-in" w="100%" maw={460} mx="auto">
+      <Center className={`app-shell app-shell-${stage}`} mih="100dvh" py="xl" style={{ position: 'relative', zIndex: 1 }}>
+        <Box key={stage} className={`stage-in app-panel app-panel-${stage}`} w="100%" maw={460} mx="auto">
           {content}
         </Box>
       </Center>

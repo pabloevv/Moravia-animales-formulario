@@ -22,6 +22,21 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
+.app-shell {
+  overflow: hidden;
+}
+
+.app-shell-learn {
+  height: 100dvh;
+  min-height: 0;
+  padding-block: clamp(6px, 1.8dvh, 24px) !important;
+}
+
+.app-panel-learn {
+  height: 100%;
+  min-height: 0;
+}
+
 /* --- Full-screen volleyball background (201.svg) + legibility overlay -- */
 .app-bg {
   position: fixed;
@@ -252,9 +267,11 @@ button:active {
 .vb3-stage {
   --vb3-ease: cubic-bezier(0.7, 0.02, 0.3, 1);
   --cyc: 6.5s; /* one rally loop */
+  --vb3-world-scale: 1;
   position: relative;
   width: 100%;
-  height: 470px;
+  height: min(470px, 100%);
+  min-height: 0;
   perspective: 1050px;
   perspective-origin: 50% 24%;
   transition: --spin 1.6s var(--vb3-ease);
@@ -279,7 +296,7 @@ button:active {
   height: 520px;
   margin-left: -170px;
   margin-top: -250px;
-  transform: rotateX(56deg) rotateZ(var(--spin));
+  transform: scale(var(--vb3-world-scale)) rotateX(56deg) rotateZ(var(--spin));
   will-change: transform;
 }
 .vb3-world.deco-world {
@@ -862,9 +879,7 @@ button:active {
     ball-spin var(--cyc) linear infinite,
     ball-fade var(--cyc) linear infinite;
 }
-/* volleyball.svg artwork: the ball occupies the region x 407–1032 y 99–710
-   of its 1440×810 canvas. Scale + offset so exactly that region fills the
-   30px circle, with a soft sphere-shading gradient on top. */
+
 .vb3-ball::before {
   content: '';
   position: absolute;
@@ -1696,17 +1711,17 @@ button:active {
   }
 }
 
-/* very narrow phones: scale the whole diorama down */
-@media (max-width: 359px) {
-  .vb3-stage {
-    transform: scale(0.84);
-    margin-block: -34px;
-  }
-}
-
 /* =======================================================================
    Mission HUD + completion banner (learn stage "videogame" mode)
    ======================================================================= */
+.learn-stack {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  justify-content: space-between;
+  gap: clamp(6px, 1.5dvh, 16px) !important;
+}
+
 .hud {
   width: 100%;
   max-width: 420px;
@@ -1780,7 +1795,22 @@ button:active {
 .court-wrap {
   position: relative;
   width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  margin-bottom: 0;
 }
+
+.learn-hint {
+  position: relative;
+  z-index: 1;
+  max-width: 360px;
+  line-height: 1.35;
+}
+
+.learn-cta {
+  max-width: 420px;
+}
+
 .vb3-banner {
   position: absolute;
   left: 50%;
@@ -1811,6 +1841,128 @@ button:active {
   to {
     transform: translateX(-50%) translateY(0) scale(1);
     opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .vb3-stage {
+    --vb3-world-scale: 0.94;
+  }
+
+  .hud {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .learn-cta {
+    max-width: 360px;
+  }
+}
+
+@media (max-width: 380px) {
+  .vb3-stage {
+    --vb3-world-scale: 0.9;
+    perspective-origin: 50% 20%;
+  }
+
+  .hud-top {
+    gap: 6px;
+  }
+
+  .hud-top .mantine-Text-root {
+    font-size: 12px;
+  }
+
+  .hud-bars {
+    gap: 6px 10px;
+  }
+
+  .hud-pips-name {
+    font-size: 10px;
+  }
+
+  .hud-pip {
+    width: 9px;
+    height: 9px;
+  }
+
+  .learn-hint {
+    max-width: 300px;
+    font-size: 11px;
+  }
+
+  .learn-cta {
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 340px) {
+  .vb3-stage {
+    --vb3-world-scale: 0.84;
+  }
+}
+
+@media (max-height: 760px) {
+  .app-shell-learn {
+    padding-block: 6px !important;
+  }
+
+  .learn-stack {
+    gap: 6px !important;
+  }
+
+  .learn-stack .mantine-Title-root {
+    font-size: 22px;
+    line-height: 1.05;
+  }
+
+  .hud {
+    padding: 7px 10px;
+  }
+
+  .hud-bars {
+    display: none;
+  }
+
+  .vb3-stage {
+    --vb3-world-scale: 0.86;
+  }
+
+  .learn-hint {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+}
+
+@media (max-height: 660px) {
+  .learn-stack .mantine-Title-root {
+    font-size: 19px;
+  }
+
+  .hud {
+    padding-block: 6px;
+  }
+
+  .hud-top .mantine-Badge-root {
+    display: none;
+  }
+
+  .vb3-stage {
+    --vb3-world-scale: 0.78;
+  }
+
+  .learn-hint {
+    display: none;
+  }
+}
+
+@media (max-height: 580px) {
+  .learn-stack .mantine-Title-root {
+    display: none;
+  }
+
+  .vb3-stage {
+    --vb3-world-scale: 0.68;
   }
 }
 

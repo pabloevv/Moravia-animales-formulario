@@ -49,6 +49,7 @@ export function LearnCourt({ onContinue }: Props) {
   const bannerTimer = useRef<number | undefined>(undefined);
   const celebrated = useRef<Set<string>>(new Set()); // side-complete shown once
   const isMobile = useMediaQuery('(max-width: 480px)');
+  const isCompact = useMediaQuery('(max-width: 380px)');
 
   const activeKey: TeamKey = flipped ? 'raccoon' : 'jaguar';
   const active = MASCOTS[activeKey];
@@ -56,6 +57,18 @@ export function LearnCourt({ onContinue }: Props) {
 
   const discovered = seen.jaguar.size + seen.raccoon.size;
   const allDone = discovered === TOTAL_ZONES;
+  const ctaLabel = allDone
+    ? isCompact
+      ? 'Elegir mascota'
+      : '¡Elegir mi mascota!'
+    : isCompact
+      ? `Zonas · ${discovered}/${TOTAL_ZONES}`
+      : `Desbloqueá las zonas · ${discovered}/${TOTAL_ZONES}`;
+  const ctaIcon = allDone ? (
+    <IconDeviceGamepad2 size={isCompact ? 18 : 20} />
+  ) : (
+    <IconLockFilled size={isCompact ? 16 : 18} />
+  );
 
   const showBanner = (kind: 'side' | 'all', text: string) => {
     setBanner({ kind, text });
@@ -101,7 +114,7 @@ export function LearnCourt({ onContinue }: Props) {
   };
 
   return (
-    <Stack align="center" gap="md" px="md">
+    <Stack className="learn-stack" align="center" gap="md" px="md">
       <Title order={2} ta="center" c="white" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
         Conocé a las mascotas
       </Title>
@@ -155,22 +168,21 @@ export function LearnCourt({ onContinue }: Props) {
         )}
       </div>
 
-      <Text fz="xs" c="gray.5" ta="center">
+      <Text className="learn-hint" fz="xs" c="gray.5" ta="center">
         Tocá las casillas con «?» para desbloquear los valores de cada mascota.
       </Text>
 
       <Button
-        className={allDone ? 'cta-pulse' : undefined}
-        size="lg"
+        className={`learn-cta${allDone ? ' cta-pulse' : ''}`}
+        size={isCompact ? 'md' : 'lg'}
         radius="xl"
         fullWidth
         color="flame"
         disabled={!allDone}
         onClick={onContinue}
-        leftSection={allDone ? <IconDeviceGamepad2 size={20} /> : <IconLockFilled size={18} />}
-        styles={{ root: { maxWidth: 420 } }}
+        leftSection={ctaIcon}
       >
-        {allDone ? '¡Elegir mi mascota!' : `Desbloqueá las zonas · ${discovered}/${TOTAL_ZONES}`}
+        {ctaLabel}
       </Button>
 
       {/* Broad explanation opens as a modal that fills the screen on mobile. */}
