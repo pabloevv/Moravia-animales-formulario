@@ -8,6 +8,7 @@
  */
 import express, { type Request, type Response } from 'express';
 import cors from 'cors';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -72,9 +73,23 @@ app.get('/api/health', (_req: Request, res: Response) => res.json({ ok: true }))
 
 // --- Serve the built client in production --------------------------------
 // One process serves API + static SPA, keeping the deployment lightweight.
-const clientDist = path.resolve(__dirname, '../../client/dist');
+const clientDist = process.env.CLIENT_DIST_DIR
+  ? path.resolve(process.env.CLIENT_DIST_DIR)
+  : path.resolve(__dirname, '../../client/dist');
+const clientIndex = path.join(clientDist, 'index.html');
+
+if (!fs.existsSync(clientIndex)) {
+  console.warn(`Client build not found at ${clientIndex}`);
+}
+
 app.use(express.static(clientDist));
-app.get('*', (_req, res) => res.sendFile(path.join(clientDist, 'index.html')));
+app.get('*', (_req, res) => {
+  if (!fs.existsSync(clientIndex)) {
+    return res.status(500).send('Client build not found. Check the Railway root directory and build output.');
+  }
+
+  return res.sendFile(clientIndex);
+});
 
 app.listen(PORT, () => {
   console.log(`ADVCM mascot server listening on http://localhost:${PORT}`);
