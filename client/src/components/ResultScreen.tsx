@@ -51,12 +51,6 @@ function scoreboard(r: Results) {
   };
 }
 
-/** Mascot logo grows with vote share and banked sets. */
-function logoSize(votes: number, total: number, sets: number) {
-  const share = total > 0 ? votes / total : 0.5;
-  return Math.round(Math.min(150, Math.max(64, 58 + share * 52 + sets * 8)));
-}
-
 function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winner: Mascot; alreadyVoted: boolean }) {
   const { jaguar, raccoon, total } = results;
   const sb = scoreboard(results);
@@ -86,12 +80,7 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
               <IconCrown size={24} />
             </div>
           )}
-          <img
-            src={COPY[JAGUAR].img}
-            alt="Jaguar"
-            className="sb-logo"
-            style={{ height: logoSize(jaguar, total, sb.setsJ) }}
-          />
+          <img src={COPY[JAGUAR].img} alt="Jaguar" className="sb-logo" />
           <div className="sb-name">JAGUAR</div>
           <div className="sb-sets">
             SETS <b>{sb.setsJ}</b>
@@ -110,12 +99,7 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
               <IconCrown size={24} />
             </div>
           )}
-          <img
-            src={COPY[RACCOON].img}
-            alt="Mapache"
-            className="sb-logo"
-            style={{ height: logoSize(raccoon, total, sb.setsR) }}
-          />
+          <img src={COPY[RACCOON].img} alt="Mapache" className="sb-logo" />
           <div className="sb-name">MAPACHE</div>
           <div className="sb-sets">
             SETS <b>{sb.setsR}</b>

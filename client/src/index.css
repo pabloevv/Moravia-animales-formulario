@@ -2001,10 +2001,10 @@ button:active {
   gap: 4px;
 }
 .sb-logo {
+  height: clamp(76px, 18vw, 104px);
   width: auto;
   max-width: 100%;
   object-fit: contain;
-  transition: height 0.6s cubic-bezier(0.2, 0.8, 0.3, 1);
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.5));
 }
 .sb-side.champ .sb-logo {
