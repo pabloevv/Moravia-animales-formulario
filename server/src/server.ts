@@ -21,6 +21,12 @@ const RACCOON = 1;
 const SET_POINTS = 25;
 type Vote = typeof JAGUAR | typeof RACCOON;
 type TeamKey = 'jaguar' | 'raccoon';
+type SetResult = {
+  set: number;
+  winner: TeamKey;
+  jaguar: number;
+  raccoon: number;
+};
 type VoteState = {
   votes: Record<string, Vote>;
 };
@@ -36,6 +42,7 @@ const VOTES_FILE = path.join(DATA_DIR, 'votes.json');
 const tally = { [JAGUAR]: 0, [RACCOON]: 0 };
 const sets = { [JAGUAR]: 0, [RACCOON]: 0 };
 const setPoints = { [JAGUAR]: 0, [RACCOON]: 0 };
+const setHistory: SetResult[] = [];
 let total = 0;
 
 // One vote per device. A Set of UUID strings is ~40 B each → thousands of
@@ -83,10 +90,17 @@ function applySetPoint(vote: Vote): TeamKey | null {
 
   if (setPoints[vote] < SET_POINTS) return null;
 
+  const winner = teamKey(vote);
   sets[vote] += 1;
+  setHistory.push({
+    set: setHistory.length + 1,
+    winner,
+    jaguar: setPoints[JAGUAR],
+    raccoon: setPoints[RACCOON],
+  });
   setPoints[JAGUAR] = 0;
   setPoints[RACCOON] = 0;
-  return teamKey(vote);
+  return winner;
 }
 
 function resultsPayload(extra: { counted?: boolean; setWinner?: TeamKey | null } = {}) {
@@ -102,6 +116,7 @@ function resultsPayload(extra: { counted?: boolean; setWinner?: TeamKey | null }
       jaguar: setPoints[JAGUAR],
       raccoon: setPoints[RACCOON],
     },
+    setHistory,
     ...extra,
   };
 }

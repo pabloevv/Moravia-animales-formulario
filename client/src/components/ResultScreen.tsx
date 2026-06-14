@@ -1,5 +1,6 @@
-import { Stack, Title, Text, Box } from '@mantine/core';
-import { IconBallVolleyball, IconCrown } from '@tabler/icons-react';
+import { useState } from 'react';
+import { Stack, Title, Text, Box, ActionIcon, Tooltip } from '@mantine/core';
+import { IconBallVolleyball, IconCrown, IconHistory } from '@tabler/icons-react';
 import { JAGUAR, RACCOON, type Mascot } from '../types';
 import type { Results } from '../api';
 
@@ -51,8 +52,11 @@ function scoreboard(r: Results) {
 }
 
 function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winner: Mascot; alreadyVoted: boolean }) {
+  const [showHistory, setShowHistory] = useState(false);
   const { jaguar, raccoon, total } = results;
   const sb = scoreboard(results);
+  const setHistory = results.setHistory ?? [];
+  const hasSetHistory = setHistory.length > 0;
 
   const setJustWon =
     !alreadyVoted &&
@@ -85,7 +89,7 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
             SETS <b>{sb.setsJ}</b>
           </div>
           <div className="sb-total">
-            PUNTOS <b>{jaguar}</b>
+            VOTOS REALES <b>{jaguar}</b>
           </div>
         </div>
 
@@ -107,10 +111,45 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
             SETS <b>{sb.setsR}</b>
           </div>
           <div className="sb-total">
-            PUNTOS <b>{raccoon}</b>
+            VOTOS REALES <b>{raccoon}</b>
           </div>
         </div>
       </div>
+
+      {hasSetHistory && (
+        <div className="sb-history-toggle">
+          <Tooltip label={showHistory ? 'Ocultar sets anteriores' : 'Ver sets anteriores'}>
+            <ActionIcon
+              className={`sb-history-button${showHistory ? ' active' : ''}`}
+              variant="subtle"
+              radius="xl"
+              size="lg"
+              color="gray"
+              aria-label={showHistory ? 'Ocultar sets anteriores' : 'Ver sets anteriores'}
+              aria-expanded={showHistory}
+              onClick={() => setShowHistory((value) => !value)}
+            >
+              <IconHistory size={19} />
+            </ActionIcon>
+          </Tooltip>
+        </div>
+      )}
+
+      {hasSetHistory && showHistory && (
+        <div className="sb-history">
+          <div className="sb-history-title">SETS ANTERIORES</div>
+          <div className="sb-history-list">
+            {setHistory.map((set) => (
+              <div key={set.set} className={`sb-history-item ${set.winner}`}>
+                <span>SET {set.set}</span>
+                <b>{set.jaguar}</b>
+                <span>:</span>
+                <b>{set.raccoon}</b>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {setJustWon && (
         <div className="sb-setwin">
@@ -127,7 +166,7 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
       )}
 
       <div className="sb-foot">
-        {leader} · {total} votos totales · marcador reinicia cada {SET_POINTS} puntos
+        {leader} · {total} votos acumulados · set actual reinicia cada {SET_POINTS} puntos
       </div>
     </Box>
   );

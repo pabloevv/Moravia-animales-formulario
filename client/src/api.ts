@@ -12,6 +12,12 @@ export interface Results {
     jaguar: number;
     raccoon: number;
   };
+  setHistory?: Array<{
+    set: number;
+    winner: 'jaguar' | 'raccoon';
+    jaguar: number;
+    raccoon: number;
+  }>;
   setWinner?: 'jaguar' | 'raccoon' | null;
   /** true if this request actually counted (false = device already voted). */
   counted?: boolean;

@@ -2080,6 +2080,63 @@ button:active {
   font-weight: 900;
   color: #9fb0c8;
 }
+.sb-history-toggle {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+.sb-history-button {
+  color: #9fb0c8;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.sb-history-button:hover,
+.sb-history-button.active {
+  color: #ffd23f;
+  background: rgba(255, 210, 63, 0.12);
+  border-color: rgba(255, 210, 63, 0.3);
+}
+.sb-history {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.sb-history-title {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  color: #9fb0c8;
+}
+.sb-history-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.sb-history-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #d7e0ee;
+  font-size: 10px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.sb-history-item b {
+  color: #fff;
+}
+.sb-history-item.jaguar {
+  border-color: rgba(255, 138, 5, 0.42);
+}
+.sb-history-item.raccoon {
+  border-color: rgba(43, 191, 178, 0.42);
+}
 .sb-crown {
   position: absolute;
   top: -22px;
