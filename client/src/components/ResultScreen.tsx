@@ -28,13 +28,12 @@ const SET_POINTS = 25;
 const SETS_TO_WIN = 3; // best-of-5 match
 
 /**
- * Volleyball reading of the raw tallies: every vote is a point, every
- * 25 points banks one set for that team, the remainder is the live score
- * of the current set. First team to 3 sets is match champion.
+ * The API returns the live set score because both sides reset together when
+ * one team reaches 25. The fallback keeps older API responses readable.
  */
 function scoreboard(r: Results) {
-  const setsJ = Math.floor(r.jaguar / SET_POINTS);
-  const setsR = Math.floor(r.raccoon / SET_POINTS);
+  const setsJ = r.sets?.jaguar ?? Math.floor(r.jaguar / SET_POINTS);
+  const setsR = r.sets?.raccoon ?? Math.floor(r.raccoon / SET_POINTS);
   const champion =
     setsJ >= SETS_TO_WIN && setsJ > setsR
       ? ('jaguar' as const)
@@ -42,8 +41,8 @@ function scoreboard(r: Results) {
         ? ('raccoon' as const)
         : null;
   return {
-    ptsJ: r.jaguar % SET_POINTS,
-    ptsR: r.raccoon % SET_POINTS,
+    ptsJ: r.setScore?.jaguar ?? r.jaguar % SET_POINTS,
+    ptsR: r.setScore?.raccoon ?? r.raccoon % SET_POINTS,
     setsJ,
     setsR,
     setNo: setsJ + setsR + 1,
@@ -55,17 +54,17 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
   const { jaguar, raccoon, total } = results;
   const sb = scoreboard(results);
 
-  // The voter's own ballot just closed a set if it pushed their team to a
-  // multiple of 25 (approximation — totals only, no vote ordering).
-  const winnerVotes = winner === JAGUAR ? jaguar : raccoon;
-  const setJustWon = !alreadyVoted && winnerVotes > 0 && winnerVotes % SET_POINTS === 0;
+  const setJustWon =
+    !alreadyVoted &&
+    results.counted === true &&
+    results.setWinner === (winner === JAGUAR ? 'jaguar' : 'raccoon');
 
   const leader =
-    jaguar === raccoon
-      ? 'Empate por ahora'
-      : jaguar > raccoon
-        ? 'El Jaguar va ganando'
-        : 'El Mapache va ganando';
+    sb.setsJ === sb.setsR
+      ? 'Sets empatados por ahora'
+      : sb.setsJ > sb.setsR
+        ? 'El Jaguar va ganando en sets'
+        : 'El Mapache va ganando en sets';
 
   return (
     <Box className="sb" w="100%">
@@ -84,6 +83,9 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
           <div className="sb-name">JAGUAR</div>
           <div className="sb-sets">
             SETS <b>{sb.setsJ}</b>
+          </div>
+          <div className="sb-total">
+            PUNTOS <b>{jaguar}</b>
           </div>
         </div>
 
@@ -104,6 +106,9 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
           <div className="sb-sets">
             SETS <b>{sb.setsR}</b>
           </div>
+          <div className="sb-total">
+            PUNTOS <b>{raccoon}</b>
+          </div>
         </div>
       </div>
 
@@ -122,7 +127,7 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
       )}
 
       <div className="sb-foot">
-        {leader} · {total} votos · cada voto es un punto, set a {SET_POINTS}
+        {leader} · {total} votos totales · marcador reinicia cada {SET_POINTS} puntos
       </div>
     </Box>
   );

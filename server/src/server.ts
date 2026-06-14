@@ -18,7 +18,9 @@ const PORT = Number(process.env.PORT) || 3001;
 
 const JAGUAR = 0;
 const RACCOON = 1;
+const SET_POINTS = 25;
 type Vote = typeof JAGUAR | typeof RACCOON;
+type TeamKey = 'jaguar' | 'raccoon';
 type VoteState = {
   votes: Record<string, Vote>;
 };
@@ -30,8 +32,10 @@ const DATA_DIR = process.env.VOTES_DATA_DIR
     : path.resolve(__dirname, '../../data');
 const VOTES_FILE = path.join(DATA_DIR, 'votes.json');
 
-// --- In-memory store (counts only — tiny footprint) ----------------------
+// --- In-memory store (totals + live volleyball scoreboard) ---------------
 const tally = { [JAGUAR]: 0, [RACCOON]: 0 };
+const sets = { [JAGUAR]: 0, [RACCOON]: 0 };
+const setPoints = { [JAGUAR]: 0, [RACCOON]: 0 };
 let total = 0;
 
 // One vote per device. A Set of UUID strings is ~40 B each → thousands of
@@ -70,18 +74,53 @@ function saveState(state: VoteState): void {
   fs.renameSync(tmpFile, VOTES_FILE);
 }
 
+function teamKey(vote: Vote): TeamKey {
+  return vote === JAGUAR ? 'jaguar' : 'raccoon';
+}
+
+function applySetPoint(vote: Vote): TeamKey | null {
+  setPoints[vote] += 1;
+
+  if (setPoints[vote] < SET_POINTS) return null;
+
+  sets[vote] += 1;
+  setPoints[JAGUAR] = 0;
+  setPoints[RACCOON] = 0;
+  return teamKey(vote);
+}
+
+function resultsPayload(extra: { counted?: boolean; setWinner?: TeamKey | null } = {}) {
+  return {
+    jaguar: tally[JAGUAR],
+    raccoon: tally[RACCOON],
+    total,
+    sets: {
+      jaguar: sets[JAGUAR],
+      raccoon: sets[RACCOON],
+    },
+    setScore: {
+      jaguar: setPoints[JAGUAR],
+      raccoon: setPoints[RACCOON],
+    },
+    ...extra,
+  };
+}
+
 const voteState = loadState();
 for (const [deviceId, vote] of Object.entries(voteState.votes)) {
   votedDevices.add(deviceId);
   tally[vote] += 1;
+  applySetPoint(vote);
   total += 1;
 }
 
-function recordVote(deviceId: string, vote: Vote): void {
+function recordVote(deviceId: string, vote: Vote): TeamKey | null {
   voteState.votes[deviceId] = vote;
   tally[vote] += 1;
+  const setWinner = applySetPoint(vote);
   total += 1;
   saveState(voteState);
+  return setWinner;
 }
 
 // --- App -----------------------------------------------------------------
@@ -105,17 +144,18 @@ app.post('/api/vote', (req: Request, res: Response) => {
   }
 
   let counted = false;
+  let setWinner: TeamKey | null = null;
   if (!votedDevices.has(deviceId)) {
     votedDevices.add(deviceId);
-    recordVote(deviceId, vote);
+    setWinner = recordVote(deviceId, vote);
     counted = true;
   }
-  return res.json({ jaguar: tally[JAGUAR], raccoon: tally[RACCOON], total, counted });
+  return res.json(resultsPayload({ counted, setWinner }));
 });
 
 /** GET /api/results — current tally (handy for an admin/results view). */
 app.get('/api/results', (_req: Request, res: Response) => {
-  res.json({ jaguar: tally[JAGUAR], raccoon: tally[RACCOON], total });
+  res.json(resultsPayload());
 });
 
 /** Health check for the hosting platform. */

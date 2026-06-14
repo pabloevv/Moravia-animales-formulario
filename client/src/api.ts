@@ -4,6 +4,15 @@ export interface Results {
   jaguar: number;
   raccoon: number;
   total: number;
+  sets?: {
+    jaguar: number;
+    raccoon: number;
+  };
+  setScore?: {
+    jaguar: number;
+    raccoon: number;
+  };
+  setWinner?: 'jaguar' | 'raccoon' | null;
   /** true if this request actually counted (false = device already voted). */
   counted?: boolean;
 }
