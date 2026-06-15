@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Stack, Title, Text, Box, ActionIcon, Tooltip } from '@mantine/core';
-import { IconBallVolleyball, IconCrown, IconHistory } from '@tabler/icons-react';
+import { IconBallVolleyball, IconHistory } from '@tabler/icons-react';
 import { JAGUAR, RACCOON, type Mascot } from '../types';
 import type { Results } from '../api';
 
@@ -26,7 +26,7 @@ const COPY = {
 } as const;
 
 const SET_POINTS = 25;
-const SETS_TO_WIN = 3; // best-of-5 match
+const DECISION_DATE = 'viernes 19 de junio';
 
 /**
  * The API returns the live set score because both sides reset together when
@@ -35,19 +35,12 @@ const SETS_TO_WIN = 3; // best-of-5 match
 function scoreboard(r: Results) {
   const setsJ = r.sets?.jaguar ?? Math.floor(r.jaguar / SET_POINTS);
   const setsR = r.sets?.raccoon ?? Math.floor(r.raccoon / SET_POINTS);
-  const champion =
-    setsJ >= SETS_TO_WIN && setsJ > setsR
-      ? ('jaguar' as const)
-      : setsR >= SETS_TO_WIN && setsR > setsJ
-        ? ('raccoon' as const)
-        : null;
   return {
     ptsJ: r.setScore?.jaguar ?? r.jaguar % SET_POINTS,
     ptsR: r.setScore?.raccoon ?? r.raccoon % SET_POINTS,
     setsJ,
     setsR,
     setNo: setsJ + setsR + 1,
-    champion,
   };
 }
 
@@ -73,16 +66,11 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
   return (
     <Box className="sb" w="100%">
       <div className="sb-head">
-        MARCADOR ADVCM · {sb.champion ? 'PARTIDO DEFINIDO' : `SET ${sb.setNo}`}
+        MARCADOR ADVCM · SET {sb.setNo}
       </div>
 
       <div className="sb-row">
-        <div className={`sb-side jaguar${sb.champion === 'jaguar' ? ' champ' : ''}`}>
-          {sb.champion === 'jaguar' && (
-            <div className="sb-crown">
-              <IconCrown size={24} />
-            </div>
-          )}
+        <div className="sb-side jaguar">
           <img src={COPY[JAGUAR].img} alt="Jaguar" className="sb-logo" />
           <div className="sb-name">JAGUAR</div>
           <div className="sb-sets">
@@ -99,12 +87,7 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
           <span className="sb-digits raccoon">{sb.ptsR}</span>
         </div>
 
-        <div className={`sb-side raccoon${sb.champion === 'raccoon' ? ' champ' : ''}`}>
-          {sb.champion === 'raccoon' && (
-            <div className="sb-crown">
-              <IconCrown size={24} />
-            </div>
-          )}
+        <div className="sb-side raccoon">
           <img src={COPY[RACCOON].img} alt="Mapache" className="sb-logo" />
           <div className="sb-name">MAPACHE</div>
           <div className="sb-sets">
@@ -157,16 +140,9 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
           ¡PUNTO DE SET! Tu voto le dio un set al {COPY[winner].name}
         </div>
       )}
-      {sb.champion && (
-        <div className="sb-setwin champ">
-          <IconCrown size={16} />
-          ¡El {COPY[sb.champion === 'jaguar' ? JAGUAR : RACCOON].name} ganó el partido (
-          {SETS_TO_WIN} sets)!
-        </div>
-      )}
-
       <div className="sb-foot">
-        {leader} · {total} votos acumulados · set actual reinicia cada {SET_POINTS} puntos
+        {leader} · {total} votos acumulados · set actual reinicia cada {SET_POINTS} puntos · se decide el{' '}
+        {DECISION_DATE}
       </div>
     </Box>
   );
