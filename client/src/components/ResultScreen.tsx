@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack, Title, Text, Box, ActionIcon, Tooltip } from '@mantine/core';
 import { IconBallVolleyball, IconCrown, IconHistory } from '@tabler/icons-react';
 import { JAGUAR, RACCOON, type Mascot } from '../types';
@@ -27,6 +27,22 @@ const COPY = {
 
 const SET_POINTS = 25;
 const DECISION_DATE = 'viernes 19 de junio';
+const DECISION_DEADLINE = new Date('2026-06-19T12:00:00-06:00').getTime();
+
+function getRemainingTime() {
+  const diff = Math.max(DECISION_DEADLINE - Date.now(), 0);
+  const totalSeconds = Math.floor(diff / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return { days, hours, minutes, seconds, finished: diff === 0 };
+}
+
+function twoDigits(value: number) {
+  return String(value).padStart(2, '0');
+}
 
 /**
  * The API returns the live set score because both sides reset together when
@@ -46,10 +62,16 @@ function scoreboard(r: Results) {
 
 function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winner: Mascot; alreadyVoted: boolean }) {
   const [showHistory, setShowHistory] = useState(false);
+  const [remaining, setRemaining] = useState(getRemainingTime);
   const { jaguar, raccoon, total } = results;
   const sb = scoreboard(results);
   const setHistory = results.setHistory ?? [];
   const hasSetHistory = setHistory.length > 0;
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setRemaining(getRemainingTime()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const setJustWon =
     !alreadyVoted &&
@@ -151,6 +173,27 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
           ¡PUNTO DE SET! Tu voto le dio un set al {COPY[winner].name}
         </div>
       )}
+      <div className="sb-countdown" aria-label="Tiempo restante para la decisión">
+        <span>{remaining.finished ? 'Tiempo terminado' : 'Tiempo restante'}</span>
+        <div className="sb-countdown-grid">
+          <div>
+            <b>{remaining.days}</b>
+            <small>días</small>
+          </div>
+          <div>
+            <b>{twoDigits(remaining.hours)}</b>
+            <small>horas</small>
+          </div>
+          <div>
+            <b>{twoDigits(remaining.minutes)}</b>
+            <small>min</small>
+          </div>
+          <div>
+            <b>{twoDigits(remaining.seconds)}</b>
+            <small>seg</small>
+          </div>
+        </div>
+      </div>
       <div className="sb-foot">
         {leader} · {total} votos acumulados · set actual reinicia cada {SET_POINTS} puntos · se decide el{' '}
         {DECISION_DATE}

@@ -2180,6 +2180,46 @@ button:active {
     text-shadow: 0 0 14px rgba(255, 210, 63, 0.6);
   }
 }
+.sb-countdown {
+  margin-top: 10px;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  text-align: center;
+}
+.sb-countdown > span {
+  display: block;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.1px;
+  color: #ffd23f;
+  text-transform: uppercase;
+}
+.sb-countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 6px;
+}
+.sb-countdown-grid div {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+}
+.sb-countdown-grid b {
+  font-size: 17px;
+  line-height: 1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.sb-countdown-grid small {
+  font-size: 9px;
+  font-weight: 800;
+  color: #9fb0c8;
+  text-transform: uppercase;
+}
 .sb-foot {
   margin-top: 8px;
   text-align: center;
