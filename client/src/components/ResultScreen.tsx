@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Stack, Title, Text, Box, ActionIcon, Tooltip } from '@mantine/core';
-import { IconBallVolleyball, IconHistory } from '@tabler/icons-react';
+import { IconBallVolleyball, IconCrown, IconHistory } from '@tabler/icons-react';
 import { JAGUAR, RACCOON, type Mascot } from '../types';
 import type { Results } from '../api';
 
@@ -62,6 +62,7 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
       : sb.setsJ > sb.setsR
         ? 'El Jaguar va ganando en sets'
         : 'El Mapache va ganando en sets';
+  const setLeader = sb.setsJ === sb.setsR ? null : sb.setsJ > sb.setsR ? 'jaguar' : 'raccoon';
 
   return (
     <Box className="sb" w="100%">
@@ -70,7 +71,12 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
       </div>
 
       <div className="sb-row">
-        <div className="sb-side jaguar">
+        <div className={`sb-side jaguar${setLeader === 'jaguar' ? ' champ' : ''}`}>
+          {setLeader === 'jaguar' && (
+            <div className="sb-crown">
+              <IconCrown size={24} />
+            </div>
+          )}
           <img src={COPY[JAGUAR].img} alt="Jaguar" className="sb-logo" />
           <div className="sb-name">JAGUAR</div>
           <div className="sb-sets">
@@ -87,7 +93,12 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
           <span className="sb-digits raccoon">{sb.ptsR}</span>
         </div>
 
-        <div className="sb-side raccoon">
+        <div className={`sb-side raccoon${setLeader === 'raccoon' ? ' champ' : ''}`}>
+          {setLeader === 'raccoon' && (
+            <div className="sb-crown">
+              <IconCrown size={24} />
+            </div>
+          )}
           <img src={COPY[RACCOON].img} alt="Mapache" className="sb-logo" />
           <div className="sb-name">MAPACHE</div>
           <div className="sb-sets">
