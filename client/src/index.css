@@ -1969,6 +1969,228 @@ button:active {
 /* =======================================================================
    Results: volleyball scoreboard (fixed palette, mode-independent)
    ======================================================================= */
+.final-winner {
+  width: 100%;
+  color: #f5f7ff;
+}
+.final-winner-kicker {
+  color: #ffd23f;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.final-winner-visual {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  width: min(100%, 320px);
+  height: clamp(190px, 54vw, 270px);
+  animation: final-winner-rise 0.75s cubic-bezier(0.2, 0.85, 0.25, 1.15) both;
+}
+.final-winner-visual.has-animation {
+  width: min(100%, 360px);
+  height: clamp(220px, 62vw, 310px);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+  background: #e9ebef;
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.42),
+    0 0 32px rgba(43, 191, 178, 0.22);
+}
+.final-winner-animation {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #e9ebef;
+  pointer-events: none;
+}
+.final-winner-logo {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: auto;
+  max-width: 86%;
+  height: clamp(155px, 44vw, 220px);
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.5));
+  animation: final-winner-logo-pop 0.9s 0.1s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+}
+/* Static winner reveal (after the animation): webp + crown on top */
+.final-winner-logo-wrap {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding-top: 24px; /* room for the crown above the mascot */
+}
+.final-winner-crown {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  color: #ffd23f;
+  filter: drop-shadow(0 3px 9px rgba(0, 0, 0, 0.55));
+  transform: translateX(-50%);
+  animation: crown-bob 1.6s ease-in-out infinite;
+}
+.winner-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  animation: stats-reveal 0.55s ease-out both;
+}
+@keyframes stats-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.final-winner-burst {
+  position: absolute;
+  inset: 5%;
+  z-index: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 210, 63, 0.42), transparent 62%);
+  filter: blur(18px);
+  animation: final-winner-burst 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+.final-winner.raccoon .final-winner-burst {
+  background: radial-gradient(circle, rgba(43, 191, 178, 0.44), transparent 62%);
+}
+.final-winner-total {
+  margin: 0;
+  color: #d7e0ee;
+  font-size: 15px;
+  font-weight: 800;
+}
+.final-winner-total b {
+  color: #fff;
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+.winner-meter {
+  display: grid;
+  justify-items: center;
+  gap: 9px;
+  width: 100%;
+  margin-top: 2px;
+}
+.winner-meter-track {
+  position: relative;
+  width: 86px;
+  height: clamp(185px, 46vw, 250px);
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.03)),
+    #08101d;
+  box-shadow:
+    inset 0 0 20px rgba(0, 0, 0, 0.55),
+    0 16px 30px rgba(0, 0, 0, 0.34);
+}
+.winner-meter-fill {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--winner-percent);
+  min-height: 48px;
+  background: linear-gradient(180deg, #ffd23f, #ff8a05 56%, #e36c00);
+  box-shadow: 0 -10px 26px rgba(255, 138, 5, 0.35);
+  transform-origin: bottom;
+  animation: winner-meter-grow 1.15s 0.28s cubic-bezier(0.2, 0.85, 0.25, 1) both;
+}
+.final-winner.raccoon .winner-meter-fill {
+  background: linear-gradient(180deg, #91fff4, #2bbfb2 56%, #137b74);
+  box-shadow: 0 -10px 26px rgba(43, 191, 178, 0.36);
+}
+.winner-meter-fill span {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 950;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.44);
+  font-variant-numeric: tabular-nums;
+}
+.winner-meter-votes {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  color: #9fb0c8;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.winner-meter-votes b {
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+@keyframes final-winner-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes final-winner-logo-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) rotate(-7deg);
+  }
+  70% {
+    transform: scale(1.08) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+@keyframes final-winner-burst {
+  0%,
+  100% {
+    opacity: 0.48;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 0.82;
+    transform: scale(1.08);
+  }
+}
+@keyframes winner-meter-grow {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
 .sb {
   background: linear-gradient(180deg, #0c1424, #070c16);
   border: 2px solid rgba(255, 255, 255, 0.14);
@@ -2227,6 +2449,30 @@ button:active {
   color: #8d9cb4;
 }
 
+/* Tiny phones (iPhone SE-class ≤360px): the fixed score block + nowrap
+   "VOTOS REALES" label overflow the shrunken side columns. Tighten both so
+   the marker row stays inside the panel. */
+@media (max-width: 360px) {
+  .sb {
+    padding: 12px 9px 10px;
+  }
+  .sb-row {
+    gap: 5px;
+  }
+  .sb-digits {
+    min-width: 46px;
+    padding: 4px 5px;
+    font-size: clamp(26px, 8.5vw, 34px);
+  }
+  .sb-score {
+    gap: 3px;
+  }
+  .sb-total {
+    font-size: 9px;
+    letter-spacing: 0.3px;
+  }
+}
+
 /* --- Choose: tappable mascot cards ------------------------------------ */
 .choice-card {
   width: 100%;
@@ -2260,7 +2506,13 @@ button:active {
   .answer-in,
   .mascot-glow,
   .cta-pulse,
-  .confetti-piece {
+  .confetti-piece,
+  .final-winner-visual,
+  .final-winner-logo,
+  .final-winner-crown,
+  .final-winner-burst,
+  .winner-stats,
+  .winner-meter-fill {
     animation: none !important;
   }
   /* freeze the diorama: instant side switch, idle players, FX hidden

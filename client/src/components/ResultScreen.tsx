@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { Stack, Title, Text, Box, ActionIcon, Tooltip } from '@mantine/core';
 import { IconBallVolleyball, IconCrown, IconHistory } from '@tabler/icons-react';
 import { JAGUAR, RACCOON, type Mascot } from '../types';
 import type { Results } from '../api';
+import { getRemainingVotingTime, isVotingClosed, VOTING_DECISION_DATE } from '../votingDeadline';
 
 interface Props {
   winner: Mascot;
@@ -25,23 +26,154 @@ const COPY = {
   },
 } as const;
 
+const TEAM_KEY = {
+  [JAGUAR]: 'jaguar',
+  [RACCOON]: 'raccoon',
+} as const;
+
+const WINNER_ANIMATION = {
+  [JAGUAR]: null,
+  [RACCOON]: '/assets/winner-animation.html',
+} as const;
+
 const SET_POINTS = 25;
-const DECISION_DATE = 'viernes 19 de junio';
-const DECISION_DEADLINE = new Date('2026-06-19T12:00:00-06:00').getTime();
-
-function getRemainingTime() {
-  const diff = Math.max(DECISION_DEADLINE - Date.now(), 0);
-  const totalSeconds = Math.floor(diff / 1000);
-  const days = Math.floor(totalSeconds / 86400);
-  const hours = Math.floor((totalSeconds % 86400) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  return { days, hours, minutes, seconds, finished: diff === 0 };
-}
 
 function twoDigits(value: number) {
   return String(value).padStart(2, '0');
+}
+
+function mascotVotes(results: Results, mascot: Mascot) {
+  return mascot === JAGUAR ? results.jaguar : results.raccoon;
+}
+
+function finalWinner(results: Results): Mascot | null {
+  if (results.jaguar === results.raccoon) return null;
+  return results.jaguar > results.raccoon ? JAGUAR : RACCOON;
+}
+
+function FinalResultsPending() {
+  return (
+    <Stack align="center" gap="md" px="md" className="final-winner">
+      <Text className="final-winner-kicker">Votación cerrada</Text>
+      <Title order={1} ta="center" c="flame.4" style={{ fontSize: 'clamp(1.8rem, 8vw, 2.4rem)' }}>
+        Cargando ganador...
+      </Title>
+      <Text ta="center" size="sm" c="gray.4">
+        Estamos leyendo los votos finales.
+      </Text>
+    </Stack>
+  );
+}
+
+function FinalWinnerScreen({ results }: { results: Results }) {
+  const winner = finalWinner(results);
+  const total = results.total || results.jaguar + results.raccoon;
+
+  if (winner === null) {
+    return (
+      <Stack align="center" gap="md" px="md" className="final-winner tie">
+        <Text className="final-winner-kicker">Votación cerrada</Text>
+        <Title order={1} ta="center" c="flame.4" style={{ fontSize: 'clamp(1.8rem, 8vw, 2.4rem)' }}>
+          Empate técnico
+        </Title>
+        <Text className="final-winner-total" ta="center">
+          Total entre ambas mascotas: <b>{total}</b> votos
+        </Text>
+      </Stack>
+    );
+  }
+
+  return <WinnerReveal results={results} winner={winner} total={total} />;
+}
+
+/**
+ * Plays the winner intro animation (when one exists) and, once the iframe
+ * signals it finished building the logo, swaps to the static webp + crown
+ * and reveals the stats below. Teams without an animation reveal instantly.
+ */
+function WinnerReveal({ results, winner, total }: { results: Results; winner: Mascot; total: number }) {
+  const c = COPY[winner];
+  const teamKey = TEAM_KEY[winner];
+  const votes = mascotVotes(results, winner);
+  const percentage = total > 0 ? Math.round((votes / total) * 100) : 0;
+  const meterStyle = { '--winner-percent': `${percentage}%` } as CSSProperties;
+  const animationSrc = WINNER_ANIMATION[winner];
+
+  const [animationDone, setAnimationDone] = useState(animationSrc === null);
+
+  useEffect(() => {
+    if (animationSrc === null) return;
+    const reveal = () => setAnimationDone(true);
+    const onMessage = (event: MessageEvent) => {
+      if (event.data === 'winner-animation-done') reveal();
+    };
+    window.addEventListener('message', onMessage);
+    // Fallback: reveal anyway if the iframe never posts back.
+    const fallback = window.setTimeout(reveal, 9000);
+    return () => {
+      window.removeEventListener('message', onMessage);
+      window.clearTimeout(fallback);
+    };
+  }, [animationSrc]);
+
+  const showAnimation = animationSrc !== null && !animationDone;
+
+  return (
+    <Stack align="center" gap="md" px="md" className={`final-winner ${teamKey}`}>
+      <Text className="final-winner-kicker">Mascota ganadora</Text>
+
+      <div className={`final-winner-visual${showAnimation ? ' has-animation' : ''}`}>
+        <div className="final-winner-burst" aria-hidden />
+        {showAnimation ? (
+          <iframe
+            className="final-winner-animation"
+            src={animationSrc}
+            title={`Animación del ${c.name} ganador`}
+            aria-label={`Animación del ${c.name} ganador`}
+          />
+        ) : (
+          <div className="final-winner-logo-wrap">
+            <div className="final-winner-crown" aria-hidden>
+              <IconCrown size={52} />
+            </div>
+            <img src={c.img} alt={`${c.name} ganador`} className="final-winner-logo" />
+          </div>
+        )}
+      </div>
+
+      {!showAnimation && (
+        <div className="winner-stats">
+          <Title
+            order={1}
+            ta="center"
+            c="flame.4"
+            style={{ fontSize: 'clamp(1.9rem, 8vw, 2.6rem)', textShadow: '0 2px 14px rgba(0,0,0,0.55)' }}
+          >
+            Ganó el {c.name}
+          </Title>
+
+          <Text className="final-winner-total" ta="center">
+            Total entre ambas mascotas: <b>{total}</b> votos
+          </Text>
+
+          <div
+            className="winner-meter"
+            aria-label={`El ${c.name} obtuvo ${votes} de ${total} votos, ${percentage} por ciento`}
+          >
+            <div className="winner-meter-track">
+              <div className="winner-meter-fill" style={meterStyle}>
+                <span>{percentage}%</span>
+              </div>
+            </div>
+            <div className="winner-meter-votes">
+              <b>{votes}</b>
+              <span>votos exactos del {c.name}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </Stack>
+  );
 }
 
 /**
@@ -62,14 +194,14 @@ function scoreboard(r: Results) {
 
 function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winner: Mascot; alreadyVoted: boolean }) {
   const [showHistory, setShowHistory] = useState(false);
-  const [remaining, setRemaining] = useState(getRemainingTime);
+  const [remaining, setRemaining] = useState(getRemainingVotingTime);
   const { jaguar, raccoon, total } = results;
   const sb = scoreboard(results);
   const setHistory = results.setHistory ?? [];
   const hasSetHistory = setHistory.length > 0;
 
   useEffect(() => {
-    const timer = window.setInterval(() => setRemaining(getRemainingTime()), 1000);
+    const timer = window.setInterval(() => setRemaining(getRemainingVotingTime()), 1000);
     return () => window.clearInterval(timer);
   }, []);
 
@@ -196,14 +328,24 @@ function Scoreboard({ results, winner, alreadyVoted }: { results: Results; winne
       </div>
       <div className="sb-foot">
         {leader} · {total} votos acumulados · set actual reinicia cada {SET_POINTS} puntos · se decide el{' '}
-        {DECISION_DATE}
+        {VOTING_DECISION_DATE}
       </div>
     </Box>
   );
 }
 
 export function ResultScreen({ winner, results, alreadyVoted }: Props) {
+  const [votingClosed, setVotingClosed] = useState(isVotingClosed);
   const c = COPY[winner];
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setVotingClosed(isVotingClosed()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  if (votingClosed) {
+    return results ? <FinalWinnerScreen results={results} /> : <FinalResultsPending />;
+  }
 
   return (
     <Stack align="center" gap="md" px="md" style={{ position: 'relative' }}>
