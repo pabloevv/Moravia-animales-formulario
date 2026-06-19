@@ -2085,69 +2085,113 @@ button:active {
   font-size: 20px;
   font-variant-numeric: tabular-nums;
 }
-.winner-meter {
+/* Vote split donut — both teams (jaguar orange vs raccoon teal) */
+.winner-pie {
   display: grid;
   justify-items: center;
-  gap: 9px;
+  gap: 16px;
   width: 100%;
   margin-top: 2px;
 }
-.winner-meter-track {
+.winner-pie-chart {
   position: relative;
-  width: 86px;
-  height: clamp(185px, 46vw, 250px);
-  overflow: hidden;
-  border: 2px solid rgba(255, 255, 255, 0.18);
-  border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.03)),
-    #08101d;
+  width: clamp(156px, 46vw, 208px);
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background: conic-gradient(#ff8a05 0deg var(--jaguar-deg), #2bbfb2 var(--jaguar-deg) 360deg);
   box-shadow:
-    inset 0 0 20px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.12),
     0 16px 30px rgba(0, 0, 0, 0.34);
+  animation:
+    pie-sweep 1s 0.25s cubic-bezier(0.3, 0.8, 0.3, 1) both,
+    pie-pop 0.55s cubic-bezier(0.2, 0.85, 0.25, 1.1) both;
 }
-.winner-meter-fill {
+.winner-pie-hole {
   position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--winner-percent);
-  min-height: 48px;
-  background: linear-gradient(180deg, #ffd23f, #ff8a05 56%, #e36c00);
-  box-shadow: 0 -10px 26px rgba(255, 138, 5, 0.35);
-  transform-origin: bottom;
-  animation: winner-meter-grow 1.15s 0.28s cubic-bezier(0.2, 0.85, 0.25, 1) both;
+  inset: 27%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 38%, #0e1830, #070c16);
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.6);
+  text-align: center;
 }
-.final-winner.raccoon .winner-meter-fill {
-  background: linear-gradient(180deg, #91fff4, #2bbfb2 56%, #137b74);
-  box-shadow: 0 -10px 26px rgba(43, 191, 178, 0.36);
-}
-.winner-meter-fill span {
+.winner-pie-hole b {
   color: #fff;
-  font-size: 22px;
+  font-size: clamp(22px, 7vw, 28px);
   font-weight: 950;
   line-height: 1;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.44);
   font-variant-numeric: tabular-nums;
 }
-.winner-meter-votes {
-  display: grid;
-  justify-items: center;
-  gap: 2px;
+.winner-pie-hole span {
+  margin-top: 3px;
   color: #9fb0c8;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
   text-transform: uppercase;
 }
-.winner-meter-votes b {
+.winner-pie-legend {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  max-width: 300px;
+}
+.winner-pie-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.winner-pie-row.jaguar {
+  border-color: rgba(255, 138, 5, 0.4);
+}
+.winner-pie-row.raccoon {
+  border-color: rgba(43, 191, 178, 0.4);
+}
+.winner-pie-dot {
+  grid-row: 1 / 3;
+  align-self: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+.winner-pie-row.jaguar .winner-pie-dot {
+  background: #ff8a05;
+  box-shadow: 0 0 10px rgba(255, 138, 5, 0.55);
+}
+.winner-pie-row.raccoon .winner-pie-dot {
+  background: #2bbfb2;
+  box-shadow: 0 0 10px rgba(43, 191, 178, 0.55);
+}
+.winner-pie-name {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+.winner-pie-row.jaguar .winner-pie-name {
+  color: #ff8a05;
+}
+.winner-pie-row.raccoon .winner-pie-name {
+  color: #2bbfb2;
+}
+.winner-pie-row b {
   color: #fff;
-  font-size: 26px;
-  line-height: 1;
+  font-size: 17px;
+  font-weight: 950;
   font-variant-numeric: tabular-nums;
+}
+.winner-pie-row small {
+  grid-column: 2 / 4;
+  color: #9fb0c8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
 @keyframes final-winner-rise {
   from {
@@ -2183,12 +2227,24 @@ button:active {
     transform: scale(1.08);
   }
 }
-@keyframes winner-meter-grow {
+@property --jaguar-deg {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes pie-sweep {
   from {
-    transform: scaleY(0);
+    --jaguar-deg: 0deg;
+  }
+}
+@keyframes pie-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
   }
   to {
-    transform: scaleY(1);
+    opacity: 1;
+    transform: scale(1);
   }
 }
 .sb {
@@ -2512,7 +2568,7 @@ button:active {
   .final-winner-crown,
   .final-winner-burst,
   .winner-stats,
-  .winner-meter-fill {
+  .winner-pie-chart {
     animation: none !important;
   }
   /* freeze the diorama: instant side switch, idle players, FX hidden

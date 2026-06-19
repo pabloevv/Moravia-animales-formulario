@@ -42,10 +42,6 @@ function twoDigits(value: number) {
   return String(value).padStart(2, '0');
 }
 
-function mascotVotes(results: Results, mascot: Mascot) {
-  return mascot === JAGUAR ? results.jaguar : results.raccoon;
-}
-
 function finalWinner(results: Results): Mascot | null {
   if (results.jaguar === results.raccoon) return null;
   return results.jaguar > results.raccoon ? JAGUAR : RACCOON;
@@ -94,9 +90,13 @@ function FinalWinnerScreen({ results }: { results: Results }) {
 function WinnerReveal({ results, winner, total }: { results: Results; winner: Mascot; total: number }) {
   const c = COPY[winner];
   const teamKey = TEAM_KEY[winner];
-  const votes = mascotVotes(results, winner);
-  const percentage = total > 0 ? Math.round((votes / total) * 100) : 0;
-  const meterStyle = { '--winner-percent': `${percentage}%` } as CSSProperties;
+  const jaguarVotes = results.jaguar;
+  const raccoonVotes = results.raccoon;
+  const jaguarPct = total > 0 ? Math.round((jaguarVotes / total) * 100) : 0;
+  const raccoonPct = total > 0 ? 100 - jaguarPct : 0;
+  const pieStyle = {
+    '--jaguar-deg': `${total > 0 ? (jaguarVotes / total) * 360 : 0}deg`,
+  } as CSSProperties;
   const animationSrc = WINNER_ANIMATION[winner];
 
   const [animationDone, setAnimationDone] = useState(animationSrc === null);
@@ -152,22 +152,31 @@ function WinnerReveal({ results, winner, total }: { results: Results; winner: Ma
             Ganó el {c.name}
           </Title>
 
-          <Text className="final-winner-total" ta="center">
-            Total entre ambas mascotas: <b>{total}</b> votos
-          </Text>
-
           <div
-            className="winner-meter"
-            aria-label={`El ${c.name} obtuvo ${votes} de ${total} votos, ${percentage} por ciento`}
+            className="winner-pie"
+            role="img"
+            aria-label={`Reparto de votos: Jaguar ${jaguarPct} por ciento con ${jaguarVotes} votos, Mapache ${raccoonPct} por ciento con ${raccoonVotes} votos`}
           >
-            <div className="winner-meter-track">
-              <div className="winner-meter-fill" style={meterStyle}>
-                <span>{percentage}%</span>
+            <div className="winner-pie-chart" style={pieStyle}>
+              <div className="winner-pie-hole">
+                <b>{total}</b>
+                <span>votos</span>
               </div>
             </div>
-            <div className="winner-meter-votes">
-              <b>{votes}</b>
-              <span>votos exactos del {c.name}</span>
+
+            <div className="winner-pie-legend">
+              <div className="winner-pie-row jaguar">
+                <span className="winner-pie-dot" aria-hidden />
+                <span className="winner-pie-name">Jaguar</span>
+                <b>{jaguarPct}%</b>
+                <small>{jaguarVotes} votos</small>
+              </div>
+              <div className="winner-pie-row raccoon">
+                <span className="winner-pie-dot" aria-hidden />
+                <span className="winner-pie-name">Mapache</span>
+                <b>{raccoonPct}%</b>
+                <small>{raccoonVotes} votos</small>
+              </div>
             </div>
           </div>
         </div>
